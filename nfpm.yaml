@@ -1,0 +1,108 @@
+name: "markdowndaonote"
+arch: "amd64"
+platform: "linux"
+version: "v1.0.1"
+section: "editors"
+priority: "optional"
+maintainer: "Taoism Dao <TaoismDao@outlook.com>"
+description: |
+  MarkdownDaoNote - Cross-platform Markdown workstation
+  A modern, beautiful Markdown editor with live preview,
+  file management, and multiple themes.
+vendor: "Taoism Dao"
+homepage: "https://github.com/TaoismDao/MarkdownDaoNote"
+license: "MIT"
+
+# 依赖项
+depends:
+  - libgtk-3-0
+  - libwebkit2gtk-4.1-0
+
+# 推荐安装的包
+recommends:
+  - fonts-noto
+  - fonts-noto-cjk
+
+# 文件映射
+contents:
+  # 主可执行文件
+  - src: ./build/bin/MarkdownDaoNote
+    dst: /usr/bin/markdowndaonote
+    file_info:
+      mode: 0755
+
+  # 应用程序图标 (通过 prepare-icons.sh 生成)
+  - src: ./assets/icons/icon.png
+    dst: /usr/share/pixmaps/markdowndaonote.png
+    file_info:
+      mode: 0644
+
+  # 多尺寸图标
+  - src: ./assets/icons/icon-16x16.png
+    dst: /usr/share/icons/hicolor/16x16/apps/markdowndaonote.png
+    file_info:
+      mode: 0644
+
+  - src: ./assets/icons/icon-32x32.png
+    dst: /usr/share/icons/hicolor/32x32/apps/markdowndaonote.png
+    file_info:
+      mode: 0644
+
+  - src: ./assets/icons/icon-48x48.png
+    dst: /usr/share/icons/hicolor/48x48/apps/markdowndaonote.png
+    file_info:
+      mode: 0644
+
+  - src: ./assets/icons/icon-128x128.png
+    dst: /usr/share/icons/hicolor/128x128/apps/markdowndaonote.png
+    file_info:
+      mode: 0644
+
+  - src: ./assets/icons/icon-256x256.png
+    dst: /usr/share/icons/hicolor/256x256/apps/markdowndaonote.png
+    file_info:
+      mode: 0644
+
+  # Desktop 启动器文件
+  - src: ./packaging/markdowndaonote.desktop
+    dst: /usr/share/applications/markdowndaonote.desktop
+    file_info:
+      mode: 0644
+
+  # 文档
+  - src: ./README.md
+    dst: /usr/share/doc/markdowndaonote/README.md
+    file_info:
+      mode: 0644
+
+  - src: ./README.zh_cn.md
+    dst: /usr/share/doc/markdowndaonote/README.zh_cn.md
+    file_info:
+      mode: 0644
+
+  - src: ./LICENSE
+    dst: /usr/share/doc/markdowndaonote/LICENSE
+    file_info:
+      mode: 0644
+
+# 脚本
+scripts:
+  postinstall: ./packaging/postinstall.sh
+  preremove: ./packaging/preremove.sh
+
+# 覆盖规则
+overrides:
+  deb:
+    depends:
+      - libgtk-3-0
+      - libwebkit2gtk-4.1-0
+    recommends:
+      - fonts-noto
+      - fonts-noto-cjk
+
+# 打包输出
+deb:
+  compression: xz
+  fields:
+    Bugs: https://github.com/TaoismDao/MarkdownDaoNote/issues
+

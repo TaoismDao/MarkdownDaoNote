@@ -1,0 +1,16 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MarkdownDaoNote
+GenericName=Markdown Editor
+Comment=Cross-platform Markdown workstation
+Comment[zh_CN]=跨平台 Markdown 工作站
+Icon=markdowndaonote
+Exec=markdowndaonote %F
+Terminal=false
+Categories=Office;TextEditor;Development;
+MimeType=text/markdown;text/x-markdown;
+Keywords=markdown;editor;notes;text;
+StartupNotify=true
+StartupWMClass=MarkdownDaoNote
+
