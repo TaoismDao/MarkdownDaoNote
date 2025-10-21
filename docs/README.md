@@ -32,6 +32,39 @@ https://github.com/TaoismDao/MarkdownDaoNote/settings/pages
 https://taoismdao.github.io/MarkdownDaoNote/
 ```
 
+## 🌐 中英文切换
+
+网站支持中英文双语界面：
+
+- 页面右上角有语言切换按钮（中文/English）
+- 切换语言后，所有文本内容会立即更新
+- 用户的语言偏好会保存到浏览器 localStorage
+- 下次访问时自动加载上次选择的语言
+- 默认语言为中文
+
+### 如何添加新的翻译
+
+编辑 `index.html` 中的 `translations` 对象：
+
+```javascript
+const translations = {
+    'zh': {
+        'key-name': '中文文本',
+        // ...
+    },
+    'en': {
+        'key-name': 'English text',
+        // ...
+    }
+};
+```
+
+然后在 HTML 元素上添加 `data-i18n` 属性：
+
+```html
+<p data-i18n="key-name"></p>
+```
+
 ## 🎨 自定义
 
 ### 修改主题颜色
@@ -111,6 +144,7 @@ npx http-server .
 
 ## 🎯 特性
 
+- ✅ **中英文切换** - 支持中英文界面切换，自动保存用户语言偏好
 - ✅ 响应式设计
 - ✅ 平滑滚动
 - ✅ 优雅动画
