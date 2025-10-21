@@ -1,7 +1,7 @@
 # MarkdownDaoNote
 
-[README English](README.md)
-[README 中文](README.zh_cn.md)
+[[English]](README.md)  
+[[中文]](README.zh_cn.md)
 
 > Cross-platform Markdown desktop client built with Go 1.22 + Wails 2 and Editor.md, focusing on local file workflows, real-time preview, and multi-tab note-taking experience.
 
