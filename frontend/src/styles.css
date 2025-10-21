@@ -1,0 +1,235 @@
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind base;
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind components;
+/* stylelint-disable-next-line at-rule-no-unknown */
+@tailwind utilities;
+
+:root {
+    color-scheme: var(--color-scheme, light);
+}
+
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.app-root,
+#app {
+    height: 100vh;
+    display: flex;
+    position: relative;
+}
+
+.app-drag-region {
+    -webkit-app-region: drag;
+    user-select: none;
+}
+
+.no-drag {
+    -webkit-app-region: no-drag;
+}
+
+[data-theme="default"] *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="default"] *::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 999px;
+}
+
+[data-theme="default"] *::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.24);
+}
+
+[data-theme="default"] *::-webkit-scrollbar-thumb:active {
+    background: rgba(0, 0, 0, 0.32);
+}
+
+[data-theme="dark"] *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+}
+
+[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.34);
+}
+
+[data-theme="dark"] *::-webkit-scrollbar-thumb:active {
+    background: rgba(255, 255, 255, 0.42);
+}
+
+[data-theme="default"] {
+    scrollbar-color: rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+    scrollbar-color: rgba(255, 255, 255, 0.22) rgba(255, 255, 255, 0.06);
+}
+
+/* 菜单栏下拉列表滚动条美化 */
+.dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background: transparent;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+    margin: 2px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dropdown-menu::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* 文件夹列表滚动条美化 */
+.sidebar-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    margin: 2px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.2) 0%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        rgba(255, 255, 255, 0.2) 100%);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.4) 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        rgba(255, 255, 255, 0.4) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 0 6px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, 
+        rgba(255, 255, 255, 0.5) 0%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        rgba(255, 255, 255, 0.5) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+        0 0 8px rgba(255, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-scroll::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* 编辑器区域滚动条美化 */
+.editor-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.editor-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    margin: 1px;
+}
+
+.editor-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, 
+        rgba(100, 100, 100, 0.3) 0%, 
+        rgba(150, 150, 150, 0.2) 50%, 
+        rgba(100, 100, 100, 0.3) 100%);
+    border-radius: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.2s ease;
+}
+
+.editor-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, 
+        rgba(120, 120, 120, 0.4) 0%, 
+        rgba(180, 180, 180, 0.3) 50%, 
+        rgba(120, 120, 120, 0.4) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+.editor-scroll::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(45deg, 
+        rgba(140, 140, 140, 0.5) 0%, 
+        rgba(200, 200, 200, 0.4) 50%, 
+        rgba(140, 140, 140, 0.5) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* 通用滚动条美化 - 为所有滚动条添加动画效果 */
+*::-webkit-scrollbar {
+    transition: all 0.3s ease;
+}
+
+*::-webkit-scrollbar-thumb {
+    transition: all 0.2s ease;
+}
+
+/* 滚动条淡入淡出效果 */
+*::-webkit-scrollbar-thumb {
+    opacity: 0.7;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+    opacity: 1;
+}
+
+/* 为特定元素添加滚动条类名 */
+.overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.1);
+}
+
+/* 菜单栏下拉列表特殊样式 */
+.relative .absolute {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.1);
+}
