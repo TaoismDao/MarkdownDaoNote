@@ -83,6 +83,59 @@ const EDITOR_THEME_OPTIONS: EditorTheme[] = [
 
 const PREVIEW_THEME_OPTIONS: PreviewTheme[] = ["default", "dark"];
 
+// 文件类型检测函数
+function isMarkdownFile(filePath: string): boolean {
+    const ext = filePath.toLowerCase().split('.').pop();
+    return ['md', 'markdown', 'mdown', 'mkd', 'mdx'].includes(ext || '');
+}
+
+// 获取文件的语言模式
+function getFileLanguage(filePath: string): string {
+    const ext = filePath.toLowerCase().split('.').pop();
+    const languageMap: { [key: string]: string } = {
+        'js': 'javascript',
+        'ts': 'typescript',
+        'py': 'python',
+        'java': 'java',
+        'cpp': 'cpp',
+        'c': 'c',
+        'cs': 'csharp',
+        'php': 'php',
+        'rb': 'ruby',
+        'go': 'go',
+        'rs': 'rust',
+        'swift': 'swift',
+        'kt': 'kotlin',
+        'scala': 'scala',
+        'sh': 'shell',
+        'bash': 'shell',
+        'ps1': 'powershell',
+        'sql': 'sql',
+        'html': 'text/html',
+        'htm': 'text/html',
+        'xml': 'text/xml',
+        'css': 'css',
+        'scss': 'scss',
+        'sass': 'sass',
+        'less': 'less',
+        'json': 'text/json',
+        'yaml': 'yaml',
+        'yml': 'yaml',
+        'toml': 'toml',
+        'ini': 'ini',
+        'cfg': 'ini',
+        'conf': 'ini',
+        'txt': 'text',
+        'log': 'text',
+        'md': 'markdown',
+        'markdown': 'markdown',
+        'mdown': 'markdown',
+        'mkd': 'markdown',
+        'mdx': 'markdown'
+    };
+    return languageMap[ext || ''] || 'text';
+}
+
 const TOOLBAR_THEME_OPTIONS: Array<AppSettings["theme"]> = ["default", "dark"];
 
 type Events = {
@@ -1068,6 +1121,9 @@ export class EditorApp {
         const normalized = this.normalizePath(path);
         const doc = this.upsertDocument(normalized, content ?? "");
 
+        // 重新配置编辑器以适应文件类型
+        this.reconfigureEditorForFileType(normalized);
+
         this.applyMarkdownContent(doc.currentContent);
         if (normalized) {
             this.setCurrentFile(normalized);
@@ -1212,24 +1268,39 @@ export class EditorApp {
         return "";
     }
 
-    private applyMarkdownContent(markdown: string) {
+    private applyMarkdownContent(content: string) {
         const apply = () => {
             if (!this.editorInstance) {
                 return;
             }
             this.suppressChangeHandler = true;
             try {
-                if (typeof this.editorInstance?.setMarkdown === "function") {
-                    this.editorInstance.setMarkdown(markdown ?? "");
-                } else if (
-                    typeof this.editorInstance?.cm?.getDoc === "function"
-                ) {
-                    const doc = this.editorInstance.cm.getDoc();
-                    if (doc?.setValue) {
-                        doc.setValue(markdown ?? "");
+                // 检查当前文件是否为markdown文件
+                const isMarkdown = this.currentFilePath ? isMarkdownFile(this.currentFilePath) : true;
+                
+                if (isMarkdown) {
+                    // Markdown模式：使用setMarkdown方法
+                    if (typeof this.editorInstance?.setMarkdown === "function") {
+                        this.editorInstance.setMarkdown(content ?? "");
+                    } else if (typeof this.editorInstance?.cm?.getDoc === "function") {
+                        const doc = this.editorInstance.cm.getDoc();
+                        if (doc?.setValue) {
+                            doc.setValue(content ?? "");
+                        }
+                        if (doc?.clearHistory) {
+                            doc.clearHistory();
+                        }
                     }
-                    if (doc?.clearHistory) {
-                        doc.clearHistory();
+                } else {
+                    // 代码编辑器模式：直接设置内容
+                    if (typeof this.editorInstance?.cm?.getDoc === "function") {
+                        const doc = this.editorInstance.cm.getDoc();
+                        if (doc?.setValue) {
+                            doc.setValue(content ?? "");
+                        }
+                        if (doc?.clearHistory) {
+                            doc.clearHistory();
+                        }
                     }
                 }
             } finally {
@@ -1247,6 +1318,41 @@ export class EditorApp {
         }
 
         apply();
+    }
+
+    /**
+     * 重新配置编辑器以适应不同的文件类型
+     */
+    private reconfigureEditorForFileType(filePath: string | null) {
+        if (!this.editorInstance || !filePath) {
+            return;
+        }
+
+        const isMarkdown = isMarkdownFile(filePath);
+        const language = getFileLanguage(filePath);
+
+        try {
+            if (isMarkdown) {                
+                this.editorInstance.showToolbar();
+                this.editorInstance.watch();
+                this.editorInstance.config('mode', 'markdown');
+                this.editorInstance.config('codeFold', false);
+                this.editorInstance.config('gutters', ['CodeMirror-linenumbers']);
+            } else {
+                this.editorInstance.hideToolbar();
+                this.editorInstance.unwatch();
+                this.editorInstance.config('mode', language);
+                this.editorInstance.config('codeFold', true);
+                this.editorInstance.config('gutters', ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']);                
+            }
+            backendLog('info', 'Editor re-configured for file type: ' + language);
+            /* this.editorInstance.loadedDisplay(true);
+            this.editorInstance.recreate();
+            this.editorInstance.resize();
+            this.editorInstance.cm.refresh();  */
+        } catch (error) {
+            backendLog('error', 'Failed to reconfigure editor:' + error);
+        }
     }
 
     private persistActiveDocument(): string | null {
@@ -1281,6 +1387,10 @@ export class EditorApp {
         if (!doc) {
             return;
         }
+        
+        // 重新配置编辑器以适应文件类型
+        this.reconfigureEditorForFileType(normalized);
+        
         this.applyMarkdownContent(doc.currentContent);
         this.setCurrentFile(normalized);
     }
@@ -1631,6 +1741,7 @@ export class EditorApp {
 
             if (fallbackPath) {
                 const fallbackDoc = this.openDocuments.get(fallbackPath);
+                this.reconfigureEditorForFileType(fallbackPath);
                 this.setCurrentFile(fallbackPath);
                 this.applyMarkdownContent(fallbackDoc?.currentContent ?? "");
             } else {
@@ -2565,6 +2676,10 @@ export class EditorApp {
             this.persistActiveDocument();
             const doc = this.upsertDocument(target, content ?? "");
             this.setCurrentFile(doc.path);
+            
+            // 重新配置编辑器以适应文件类型
+            this.reconfigureEditorForFileType(doc.path);
+            
             this.applyMarkdownContent(doc.currentContent);
             this.flashStatus(`Opened: ${doc.path}`);
         } catch (error) {

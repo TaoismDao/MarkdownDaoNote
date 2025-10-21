@@ -88,8 +88,6 @@ func (a *App) readDirectoryChildren(path string) ([]DirectoryEntry, error) {
 			childEntry.IsDir = false
 		} else if childEntry.IsDir {
 			childEntry.HasChildren = a.directoryHasChildren(childPath)
-		} else if !isMarkdownFile(childEntry.Name) {
-			continue
 		}
 
 		children = append(children, childEntry)
@@ -127,9 +125,8 @@ func (a *App) directoryHasChildren(path string) bool {
 			continue
 		}
 
-		if isMarkdownFile(entry.Name()) {
-			return true
-		}
+		// 显示所有文件，不再过滤markdown文件
+		return true
 	}
 
 	return false
