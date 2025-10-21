@@ -352,31 +352,68 @@ jobs:
         run: |
           mkdir -p release
           
+          echo "📦 Preparing release assets..."
+          echo "Available artifacts:"
+          ls -R artifacts/
+          echo ""
+          
           # macOS - DMG 和 ZIP
+          echo "🍎 Processing macOS artifacts..."
           if [ -f "artifacts/MarkdownDaoNote-macos/MarkdownDaoNote-macos-universal.dmg" ]; then
             cp artifacts/MarkdownDaoNote-macos/MarkdownDaoNote-macos-universal.dmg release/
+            echo "✅ Copied macOS DMG"
+          else
+            echo "⚠️  macOS DMG not found"
           fi
           if [ -f "artifacts/MarkdownDaoNote-macos/MarkdownDaoNote-macos-universal.zip" ]; then
             cp artifacts/MarkdownDaoNote-macos/MarkdownDaoNote-macos-universal.zip release/
+            echo "✅ Copied macOS ZIP"
+          else
+            echo "⚠️  macOS ZIP not found"
           fi
           
-          # Linux
+          # Linux - 二进制和 DEB 包
+          echo ""
+          echo "🐧 Processing Linux artifacts..."
           if [ -f "artifacts/MarkdownDaoNote-linux/MarkdownDaoNote" ]; then
             cp artifacts/MarkdownDaoNote-linux/MarkdownDaoNote release/MarkdownDaoNote-linux
             chmod +x release/MarkdownDaoNote-linux
+            echo "✅ Copied Linux binary"
+          else
+            echo "⚠️  Linux binary not found"
           fi
-          if [ -f "artifacts/MarkdownDaoNote-linux/"*.deb ]; then
-            cp artifacts/MarkdownDaoNote-linux/*.deb release/
+          
+          # 使用 find 查找 DEB 包
+          if [ -d "artifacts/MarkdownDaoNote-linux" ]; then
+            deb_count=$(find artifacts/MarkdownDaoNote-linux -name "*.deb" | wc -l)
+            if [ "$deb_count" -gt 0 ]; then
+              find artifacts/MarkdownDaoNote-linux -name "*.deb" -exec cp {} release/ \;
+              echo "✅ Copied $deb_count DEB package(s)"
+            else
+              echo "⚠️  No DEB packages found"
+            fi
           fi
           
           # Windows - EXE 和安装程序
+          echo ""
+          echo "🪟 Processing Windows artifacts..."
           if [ -f "artifacts/MarkdownDaoNote-windows/MarkdownDaoNote.exe" ]; then
             cp artifacts/MarkdownDaoNote-windows/MarkdownDaoNote.exe release/MarkdownDaoNote-windows.exe
-          fi
-          if [ -f "artifacts/MarkdownDaoNote-windows/"*-installer.exe ]; then
-            cp artifacts/MarkdownDaoNote-windows/*-installer.exe release/
+            echo "✅ Copied Windows EXE"
+          else
+            echo "⚠️  Windows EXE not found"
           fi
           
+          installer_count=$(find artifacts/MarkdownDaoNote-windows -name "*-installer.exe" 2>/dev/null | wc -l)
+          if [ "$installer_count" -gt 0 ]; then
+            find artifacts/MarkdownDaoNote-windows -name "*-installer.exe" -exec cp {} release/ \;
+            echo "✅ Copied Windows installer"
+          else
+            echo "⚠️  Windows installer not found"
+          fi
+          
+          echo ""
+          echo "📋 Final release assets:"
           ls -lh release/
 
       - name: Create Release
