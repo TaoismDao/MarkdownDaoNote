@@ -37,12 +37,29 @@ jobs:
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
+      - name: Add Go bin to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Verify Wails installation
+        run: |
+          which wails
+          wails version
+
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
 
+      - name: Verify frontend dependencies
+        working-directory: frontend
+        run: |
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          ls -la node_modules/ | head -20
+
       - name: Build Universal macOS App
-        run: wails build -platform darwin/universal
+        run: |
+          echo "Building macOS Universal App..."
+          wails build -platform darwin/universal -v 2
         env:
           CGO_ENABLED: 1
 

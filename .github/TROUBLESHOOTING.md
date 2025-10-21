@@ -1,0 +1,261 @@
+# GitHub Actions 故障排除
+
+## ❌ 常见错误及解决方案
+
+### 1. "pattern frontend/dist/*: no matching files found"
+
+**错误原因**：
+- Wails CLI 未在 PATH 中
+- `wails` 命令无法找到，导致构建失败
+- 前端代码没有被构建
+
+**解决方案**：
+已在所有 workflow 中添加以下步骤：
+
+```yaml
+- name: Add Go bin to PATH
+  run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+```
+
+**验证修复**：
+查看构建日志，确保能看到：
+```
+which wails
+/Users/runner/go/bin/wails
+```
+
+### 2. "Process completed with exit code 1"
+
+**可能原因**：
+1. Wails 命令未找到（见问题 1）
+2. 前端依赖安装失败
+3. 编译错误
+
+**调试步骤**：
+
+1. **检查 Wails 安装**：
+   ```yaml
+   - name: Verify Wails installation
+     run: |
+       which wails
+       wails version
+   ```
+
+2. **检查前端依赖**：
+   ```yaml
+   - name: Verify frontend dependencies
+     working-directory: frontend
+     run: |
+       echo "Node version: $(node --version)"
+       echo "NPM version: $(npm --version)"
+       ls -la node_modules/ | head -20
+   ```
+
+3. **启用详细构建日志**：
+   ```yaml
+   - name: Build application
+     run: wails build -v 2  # -v 2 启用详细日志
+   ```
+
+### 3. macOS DMG 创建失败
+
+**错误信息**：
+```
+create-dmg: command not found
+```
+
+**解决方案**：
+DMG 创建步骤已设置为可选，不会导致整个构建失败：
+
+```yaml
+- name: Create DMG (optional)
+  run: |
+    brew install create-dmg
+    create-dmg ... || {
+      echo "⚠️  DMG creation failed, but app is still available"
+    }
+```
+
+**替代方案**：
+即使 DMG 创建失败，ZIP 包仍然可用。
+
+### 4. Linux 构建失败 - webkit2gtk-4.0 未找到
+
+**错误信息**：
+```
+Package webkit2gtk-4.0 was not found
+```
+
+**解决方案**：
+workflow 已配置安装 `libwebkit2gtk-4.1-dev`：
+
+```yaml
+- name: Install system dependencies
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y \
+      libgtk-3-dev \
+      libwebkit2gtk-4.1-dev \
+      pkg-config \
+      build-essential
+```
+
+如果仍然失败，添加符号链接步骤：
+
+```yaml
+- name: Create webkit2gtk symlink
+  run: |
+    sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc \
+               /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
+```
+
+### 5. Windows 构建失败
+
+**常见问题**：
+- PATH 设置语法不同
+
+**解决方案**：
+Windows 使用 PowerShell 语法：
+
+```yaml
+- name: Add Go bin to PATH
+  run: echo "$(go env GOPATH)/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+  shell: pwsh
+```
+
+### 6. 前端依赖缓存问题
+
+**错误信息**：
+```
+npm ERR! code EINTEGRITY
+```
+
+**解决方案**：
+使用 `npm ci` 而不是 `npm install`：
+
+```yaml
+- name: Install frontend dependencies
+  working-directory: frontend
+  run: npm ci  # 使用 ci 而不是 install
+```
+
+如果仍然失败，清除缓存并重试：
+1. 访问仓库 Settings → Actions → Caches
+2. 删除所有缓存
+3. 重新运行 workflow
+
+### 7. 构建超时
+
+**错误信息**：
+```
+The job running on runner ... has exceeded the maximum execution time of 360 minutes.
+```
+
+**解决方案**：
+
+1. **分离平台构建**：使用单独的 workflow
+2. **优化缓存**：确保 Go 和 npm 缓存启用
+3. **减少构建步骤**：移除不必要的验证步骤
+
+### 8. 上传 Artifacts 失败
+
+**错误信息**：
+```
+Unable to find any artifacts for the associated workflow
+```
+
+**检查清单**：
+1. 确保构建成功完成
+2. 检查文件路径是否正确
+3. 确认 `build/bin/` 目录存在
+
+**调试**：
+```yaml
+- name: Debug build output
+  run: |
+    echo "Build directory contents:"
+    find build -type f
+```
+
+## 🔍 调试技巧
+
+### 查看详细日志
+
+在 GitHub Actions 界面：
+1. 点击失败的步骤
+2. 展开查看完整输出
+3. 搜索 "error" 或 "failed" 关键词
+
+### 本地复现
+
+在本地模拟 CI 环境：
+
+```bash
+# macOS
+wails build -platform darwin/universal -v 2
+
+# Linux
+wails build -platform linux/amd64 -v 2
+
+# Windows
+wails build -platform windows/amd64 -v 2
+```
+
+### 启用 Debug 模式
+
+在 workflow 中添加：
+
+```yaml
+- name: Enable debug logging
+  run: |
+    echo "ACTIONS_STEP_DEBUG=true" >> $GITHUB_ENV
+    echo "ACTIONS_RUNNER_DEBUG=true" >> $GITHUB_ENV
+```
+
+### 检查构建产物
+
+```yaml
+- name: List build artifacts
+  if: always()  # 即使构建失败也运行
+  run: |
+    echo "=== Build directory ==="
+    ls -lhR build/ || echo "No build directory"
+    echo "=== Frontend dist ==="
+    ls -lh frontend/dist/ || echo "No dist directory"
+```
+
+## 📝 提交 Issue 时的信息清单
+
+如果遇到无法解决的问题，提交 Issue 时请包含：
+
+1. **错误信息**：完整的错误日志
+2. **Workflow 文件**：相关的 `.yml` 文件内容
+3. **运行链接**：GitHub Actions 运行的 URL
+4. **本地测试**：本地构建是否成功
+5. **环境信息**：
+   - Go 版本
+   - Node 版本
+   - Wails 版本
+   - 操作系统
+
+## 🔄 最新修复（2024-10-21）
+
+### 修复的问题
+✅ 修复了 "pattern frontend/dist/*: no matching files found" 错误
+✅ 为所有平台添加了 Go bin PATH 配置
+✅ 添加了详细的构建日志（-v 2）
+✅ 添加了 Wails 安装验证步骤
+
+### 更新的文件
+- `.github/workflows/build.yml`
+- `.github/workflows/build-macos-only.yml`
+
+### 测试验证
+推送代码后，构建应该能成功完成。查看 Actions 页面确认所有步骤都是绿色 ✓。
+
+## 📞 获取帮助
+
+- [Wails 文档](https://wails.io/docs/guides/troubleshooting)
+- [GitHub Actions 文档](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions)
+- [项目 Issues](https://github.com/TaoismDao/MarkdownDaoNote/issues)
+

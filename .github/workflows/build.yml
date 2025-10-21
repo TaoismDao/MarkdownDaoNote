@@ -36,6 +36,9 @@ jobs:
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
+      - name: Add Go bin to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
       - name: Install frontend dependencies
         run: |
           cd frontend
@@ -43,7 +46,7 @@ jobs:
 
       - name: Build application
         run: |
-          wails build -platform darwin/universal
+          wails build -platform darwin/universal -v 2
         env:
           CGO_ENABLED: 1
 
@@ -110,13 +113,16 @@ jobs:
       - name: Install NFPM
         run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
 
+      - name: Add Go bin to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
       - name: Install frontend dependencies
         run: |
           cd frontend
           npm ci
 
       - name: Build application
-        run: wails build
+        run: wails build -v 2
 
       - name: Prepare icons
         run: |
@@ -161,13 +167,17 @@ jobs:
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
+      - name: Add Go bin to PATH
+        run: echo "$(go env GOPATH)/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
+
       - name: Install frontend dependencies
         run: |
           cd frontend
           npm ci
 
       - name: Build application
-        run: wails build
+        run: wails build -v 2
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
