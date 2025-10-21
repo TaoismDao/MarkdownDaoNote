@@ -1,5 +1,10 @@
 # MarkdownDaoNote
 
+[![构建和发布](https://github.com/TaoismDao/MarkdownDaoNote/actions/workflows/build.yml/badge.svg)](https://github.com/TaoismDao/MarkdownDaoNote/actions)
+[![许可证: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go 版本](https://img.shields.io/badge/Go-1.22-blue.svg)](https://golang.org/)
+[![Wails](https://img.shields.io/badge/Wails-v2.10-red.svg)](https://wails.io/)
+
 [[English]](README.md)  
 [[中文]](README.zh_cn.md)
 

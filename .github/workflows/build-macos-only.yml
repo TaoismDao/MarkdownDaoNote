@@ -1,0 +1,125 @@
+name: Build macOS App
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build macOS Universal App
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Universal macOS App
+        run: wails build -platform darwin/universal
+        env:
+          CGO_ENABLED: 1
+
+      - name: Verify build output
+        run: |
+          echo "Build output:"
+          ls -lh build/bin/
+          if [ -d "build/bin/MarkdownDaoNote.app" ]; then
+            echo "✅ App bundle created successfully"
+            file build/bin/MarkdownDaoNote.app/Contents/MacOS/MarkdownDaoNote
+          else
+            echo "❌ App bundle not found"
+            exit 1
+          fi
+
+      - name: Create DMG installer
+        run: |
+          # 安装 create-dmg 工具
+          brew install create-dmg
+          
+          # 创建 DMG 文件
+          create-dmg \
+            --volname "MarkdownDaoNote" \
+            --volicon "assets/icons/icon.ico" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "MarkdownDaoNote.app" 175 120 \
+            --hide-extension "MarkdownDaoNote.app" \
+            --app-drop-link 425 120 \
+            --no-internet-enable \
+            "build/bin/MarkdownDaoNote-macos-universal.dmg" \
+            "build/bin/MarkdownDaoNote.app" || {
+              echo "⚠️  DMG creation failed, but app is still available"
+            }
+
+      - name: Create ZIP archive
+        run: |
+          cd build/bin
+          zip -r MarkdownDaoNote-macos-universal.zip MarkdownDaoNote.app
+          cd ../..
+          echo "✅ ZIP archive created"
+
+      - name: Upload App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarkdownDaoNote-macos-app
+          path: build/bin/MarkdownDaoNote.app
+          retention-days: 30
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: MarkdownDaoNote-macos-dmg
+          path: build/bin/MarkdownDaoNote-macos-universal.dmg
+          retention-days: 30
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarkdownDaoNote-macos-zip
+          path: build/bin/MarkdownDaoNote-macos-universal.zip
+          retention-days: 30
+
+      - name: Build summary
+        run: |
+          echo "### 🎉 Build Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Platform:** macOS Universal (Intel + Apple Silicon)" >> $GITHUB_STEP_SUMMARY
+          echo "**Go Version:** $(go version)" >> $GITHUB_STEP_SUMMARY
+          echo "**Node Version:** $(node --version)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 📦 Build Artifacts:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ MarkdownDaoNote.app (App Bundle)" >> $GITHUB_STEP_SUMMARY
+          if [ -f "build/bin/MarkdownDaoNote-macos-universal.dmg" ]; then
+            echo "- ✅ MarkdownDaoNote-macos-universal.dmg (Installer)" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- ✅ MarkdownDaoNote-macos-universal.zip (Archive)" >> $GITHUB_STEP_SUMMARY
+

@@ -1,0 +1,233 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build application
+        run: |
+          wails build -platform darwin/universal
+        env:
+          CGO_ENABLED: 1
+
+      - name: Create DMG (optional)
+        run: |
+          # 安装 create-dmg
+          brew install create-dmg
+          
+          # 创建 DMG
+          create-dmg \
+            --volname "MarkdownDaoNote" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "MarkdownDaoNote.app" 175 120 \
+            --hide-extension "MarkdownDaoNote.app" \
+            --app-drop-link 425 120 \
+            "build/bin/MarkdownDaoNote.dmg" \
+            "build/bin/MarkdownDaoNote.app" || true
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarkdownDaoNote-macos
+          path: |
+            build/bin/MarkdownDaoNote.app
+            build/bin/MarkdownDaoNote.dmg
+          retention-days: 30
+
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            pkg-config \
+            build-essential \
+            imagemagick
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install NFPM
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build application
+        run: wails build
+
+      - name: Prepare icons
+        run: |
+          chmod +x packaging/prepare-icons.sh
+          ./packaging/prepare-icons.sh
+
+      - name: Build DEB package
+        run: |
+          mkdir -p build/packages
+          nfpm package --packager deb --target build/packages/
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarkdownDaoNote-linux
+          path: |
+            build/bin/MarkdownDaoNote
+            build/packages/*.deb
+          retention-days: 30
+
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build application
+        run: wails build
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MarkdownDaoNote-windows
+          path: build/bin/MarkdownDaoNote.exe
+          retention-days: 30
+
+  release:
+    name: Create Release
+    needs: [build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release
+          
+          # macOS
+          if [ -f "artifacts/MarkdownDaoNote-macos/MarkdownDaoNote.dmg" ]; then
+            cp artifacts/MarkdownDaoNote-macos/MarkdownDaoNote.dmg release/MarkdownDaoNote-macos.dmg
+          fi
+          if [ -d "artifacts/MarkdownDaoNote-macos/MarkdownDaoNote.app" ]; then
+            cd artifacts/MarkdownDaoNote-macos
+            zip -r ../../release/MarkdownDaoNote-macos.zip MarkdownDaoNote.app
+            cd ../..
+          fi
+          
+          # Linux
+          if [ -f "artifacts/MarkdownDaoNote-linux/MarkdownDaoNote" ]; then
+            cp artifacts/MarkdownDaoNote-linux/MarkdownDaoNote release/MarkdownDaoNote-linux
+            chmod +x release/MarkdownDaoNote-linux
+          fi
+          if [ -f "artifacts/MarkdownDaoNote-linux/"*.deb ]; then
+            cp artifacts/MarkdownDaoNote-linux/*.deb release/
+          fi
+          
+          # Windows
+          if [ -f "artifacts/MarkdownDaoNote-windows/MarkdownDaoNote.exe" ]; then
+            cp artifacts/MarkdownDaoNote-windows/MarkdownDaoNote.exe release/MarkdownDaoNote-windows.exe
+          fi
+          
+          ls -lh release/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
