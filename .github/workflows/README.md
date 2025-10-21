@@ -21,7 +21,8 @@
   - `MarkdownDaoNote` - 可执行文件
   - `markdowndaonote_*.deb` - DEB 安装包
 - ✅ Windows (x64)
-  - `MarkdownDaoNote.exe` - 可执行文件
+  - `MarkdownDaoNote.exe` - 可执行文件（绿色版）
+  - `MarkdownDaoNote-1.0.1-installer.exe` - NSIS 安装程序
 
 **功能：**
 - 自动构建所有平台

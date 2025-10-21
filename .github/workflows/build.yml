@@ -245,13 +245,45 @@ jobs:
         run: npm run build
 
       - name: Build application
-        run: wails build -v 2
+        run: |
+          echo "Building Windows application..."
+          wails build -v 2
+        shell: pwsh
+
+      - name: Verify build output
+        run: |
+          echo "Build output:"
+          ls build/bin/
+          if (Test-Path "build/bin/MarkdownDaoNote.exe") {
+            echo "✅ Executable created successfully"
+            (Get-Item "build/bin/MarkdownDaoNote.exe").Length
+          } else {
+            echo "❌ Executable not found"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Install NSIS
+        run: |
+          echo "Installing NSIS..."
+          choco install nsis -y
+        shell: pwsh
+
+      - name: Create NSIS installer
+        run: |
+          echo "Creating Windows installer..."
+          & "C:\Program Files (x86)\NSIS\makensis.exe" /V4 scripts\installer.nsi
+          echo "✅ Installer created"
+          ls build/bin/*.exe
+        shell: pwsh
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: MarkdownDaoNote-windows
-          path: build/bin/MarkdownDaoNote.exe
+          path: |
+            build/bin/MarkdownDaoNote.exe
+            build/bin/MarkdownDaoNote-*-installer.exe
           retention-days: 30
 
   release:
@@ -290,9 +322,12 @@ jobs:
             cp artifacts/MarkdownDaoNote-linux/*.deb release/
           fi
           
-          # Windows
+          # Windows - EXE 和安装程序
           if [ -f "artifacts/MarkdownDaoNote-windows/MarkdownDaoNote.exe" ]; then
             cp artifacts/MarkdownDaoNote-windows/MarkdownDaoNote.exe release/MarkdownDaoNote-windows.exe
+          fi
+          if [ -f "artifacts/MarkdownDaoNote-windows/"*-installer.exe ]; then
+            cp artifacts/MarkdownDaoNote-windows/*-installer.exe release/
           fi
           
           ls -lh release/
