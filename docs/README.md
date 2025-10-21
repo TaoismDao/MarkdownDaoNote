@@ -49,13 +49,15 @@ https://taoismdao.github.io/MarkdownDaoNote/
 
 ### 更新截图
 
-截图位于 `../assets/preview/` 目录：
+截图位于 `docs/assets/preview/` 目录：
 
 - `screen1.png` - 主界面截图
 - `screen2.png` - 编辑界面截图
 - `screen-theme.png` - 主题切换截图
 - `screen-full-preview.png` - 全屏预览截图
 - `screen-close-preview.png` - 纯编辑模式截图
+
+**注意**：截图已复制到 docs 目录内，以便 GitHub Pages 可以访问。
 
 ### 更新下载链接
 

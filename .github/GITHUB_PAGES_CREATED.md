@@ -11,7 +11,14 @@ docs/
 ├── .nojekyll                    # 禁用 Jekyll 处理
 ├── index.html                   # 主页（19.5 KB）
 ├── README.md                    # 文档说明
-└── GITHUB_PAGES_SETUP.md       # 快速启用指南
+├── GITHUB_PAGES_SETUP.md       # 快速启用指南
+└── assets/
+    └── preview/                 # 截图文件
+        ├── screen1.png
+        ├── screen2.png
+        ├── screen-theme.png
+        ├── screen-full-preview.png
+        └── screen-close-preview.png
 ```
 
 ## 🎨 主页特性
