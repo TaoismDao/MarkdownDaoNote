@@ -3,7 +3,7 @@ FRONTEND_DIR := frontend
 BUILD_DIR := build
 VERSION := 1.0.1
 
-.PHONY: dev build package clean frontend prepare-icons deb install-nfpm
+.PHONY: dev build package clean frontend prepare-icons prepare-macos-icon deb install-nfpm
 
 dev:
 	@wails dev
@@ -14,10 +14,15 @@ build:
 frontend:
 	@cd $(FRONTEND_DIR) && npm install && npm run build
 
-# 准备图标文件
+# 准备 Linux 图标文件
 prepare-icons:
-	@echo "Preparing icons..."
+	@echo "Preparing Linux icons..."
 	@./packaging/prepare-icons.sh
+
+# 准备 macOS 图标文件
+prepare-macos-icon:
+	@echo "Preparing macOS icon..."
+	@./packaging/prepare-macos-icon.sh
 
 # 安装 NFPM（如果未安装）
 install-nfpm:

@@ -48,6 +48,11 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Prepare macOS icon
+        run: |
+          chmod +x packaging/prepare-macos-icon.sh
+          ./packaging/prepare-macos-icon.sh || echo "⚠️  Icon preparation failed, continuing..."
+
       - name: Build application
         run: |
           wails build -platform darwin/universal -v 2
@@ -59,9 +64,16 @@ jobs:
           # 安装 create-dmg
           brew install create-dmg
           
-          # 创建 DMG
+          # 创建 DMG（使用 .icns 图标）
+          if [ -f "assets/icons/icon.icns" ]; then
+            VOLICON_PARAM="--volicon assets/icons/icon.icns"
+          else
+            VOLICON_PARAM=""
+          fi
+          
           create-dmg \
             --volname "MarkdownDaoNote" \
+            $VOLICON_PARAM \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \

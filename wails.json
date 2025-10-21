@@ -15,6 +15,18 @@
         "companyName": "Taoism Dao",
         "productName": "MarkdownDaoNote",
         "productVersion": "1.0.1",
-        "copyright": "Copyright © Taoism Dao 2025"
+        "copyright": "Copyright © Taoism Dao 2025",
+        "comments": "A modern Markdown editor"
+    },
+    "nsisType": "multiple",
+    "obfuscated": false,
+    "windows": {
+        "icon": "assets/icons/icon.ico"
+    },
+    "linux": {
+        "icon": "assets/icons/icon.png"
+    },
+    "darwin": {
+        "icon": "assets/icons/icon.icns"
     }
 }

@@ -57,6 +57,11 @@ jobs:
           echo "Frontend build completed!"
           ls -la dist/ || echo "Warning: dist directory not found"
 
+      - name: Prepare macOS icon
+        run: |
+          chmod +x packaging/prepare-macos-icon.sh
+          ./packaging/prepare-macos-icon.sh || echo "⚠️  Icon preparation failed, continuing..."
+
       - name: Build Universal macOS App
         run: |
           echo "Building macOS Universal App..."
@@ -81,10 +86,17 @@ jobs:
           # 安装 create-dmg 工具
           brew install create-dmg
           
-          # 创建 DMG 文件
+          # 创建 DMG 文件（使用 .icns 图标）
+          if [ -f "assets/icons/icon.icns" ]; then
+            VOLICON_PARAM="--volicon assets/icons/icon.icns"
+          else
+            echo "⚠️  icon.icns not found, DMG will use default icon"
+            VOLICON_PARAM=""
+          fi
+          
           create-dmg \
             --volname "MarkdownDaoNote" \
-            --volicon "assets/icons/icon.ico" \
+            $VOLICON_PARAM \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
