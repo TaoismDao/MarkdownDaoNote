@@ -89,6 +89,30 @@ function isMarkdownFile(filePath: string): boolean {
     return ['md', 'markdown', 'mdown', 'mkd', 'mdx'].includes(ext || '');
 }
 
+// 检测是否为二进制文件
+function isBinaryFile(filePath: string): boolean {
+    const ext = filePath.toLowerCase().split('.').pop();
+    const binaryExtensions = [
+        // 图片文件
+        'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp', 'svg', 'ico', 'icns',
+        // 视频文件
+        'mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm', 'm4v',
+        // 音频文件
+        'mp3', 'wav', 'flac', 'aac', 'ogg', 'wma', 'm4a',
+        // 压缩文件
+        'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz',
+        // 可执行文件
+        'exe', 'dll', 'so', 'dylib', 'bin',
+        // 文档文件
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+        // 数据库文件
+        'db', 'sqlite', 'sqlite3', 'mdb', 'accdb',
+        // 其他二进制文件
+        'iso', 'img', 'dmg', 'pkg', 'deb', 'rpm'
+    ];
+    return binaryExtensions.includes(ext || '');
+}
+
 // 获取文件的语言模式
 function getFileLanguage(filePath: string): string {
     const ext = filePath.toLowerCase().split('.').pop();
@@ -281,9 +305,9 @@ export class EditorApp {
         // 创建模态框容器
         const modal = document.createElement("div");
         modal.className =
-            "bg-gray-800 border border-gray-600 rounded-lg shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100";
+            "bg-gray-800 border border-gray-600 rounded-lg shadow-2xl max-w-lg w-full mx-4 transform transition-all duration-300 scale-100";
         modal.style.minWidth = "320px";
-        modal.style.maxWidth = "500px";
+        modal.style.maxWidth = "600px";
 
         // 根据类型设置不同的样式
         const typeStyles = this.getModalTypeStyles(type);
@@ -320,7 +344,7 @@ export class EditorApp {
         const messageElement = document.createElement("p");
         messageElement.textContent = message;
         messageElement.className =
-            "text-gray-200 leading-relaxed whitespace-pre-wrap";
+            "text-gray-200 leading-relaxed whitespace-pre-wrap break-words";
 
         content.appendChild(messageElement);
 
@@ -1119,6 +1143,18 @@ export class EditorApp {
         this.persistActiveDocument();
 
         const normalized = this.normalizePath(path);
+        
+        // 检查是否为二进制文件
+        if (normalized && isBinaryFile(normalized)) {
+            await this.showMessageDialog(
+                `Can't open binary file: ${normalized}\n\nThis file type is not supported in the editor.`,
+                "Can't open file",
+                "error"
+            );
+            this.flashStatus("Can't open binary file");
+            return;
+        }
+
         const doc = this.upsertDocument(normalized, content ?? "");
 
         // 重新配置编辑器以适应文件类型
@@ -1333,17 +1369,17 @@ export class EditorApp {
 
         try {
             if (isMarkdown) {                
-                this.editorInstance.showToolbar();
-                this.editorInstance.watch();
+                this.editorInstance.showToolbar();                
                 this.editorInstance.config('mode', 'markdown');
                 this.editorInstance.config('codeFold', false);
                 this.editorInstance.config('gutters', ['CodeMirror-linenumbers']);
+                this.editorInstance.watch();
             } else {
-                this.editorInstance.hideToolbar();
-                this.editorInstance.unwatch();
+                this.editorInstance.hideToolbar();                
                 this.editorInstance.config('mode', language);
                 this.editorInstance.config('codeFold', true);
-                this.editorInstance.config('gutters', ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']);                
+                this.editorInstance.config('gutters', ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']);  
+                this.editorInstance.unwatch();              
             }
             backendLog('info', 'Editor re-configured for file type: ' + language);
             /* this.editorInstance.loadedDisplay(true);
@@ -2668,6 +2704,17 @@ export class EditorApp {
     private async openFile(path: string) {
         const target = path?.trim();
         if (!target) {
+            return;
+        }
+
+        // 检查是否为二进制文件
+        if (isBinaryFile(target)) {
+            await this.showMessageDialog(
+                `Can't open binary file: ${target}\n\nThis file type is not supported in the editor.`,
+                "Can't open file",
+                "error"
+            );
+            this.flashStatus("Can't open binary file");
             return;
         }
 
