@@ -54,7 +54,7 @@ func main() {
 		OnDomReady:       application.DomReady,
 		OnShutdown:       application.Shutdown,
 		Bind:             []interface{}{application},
-		Menu:             application.Menu(),
+		Menu:             nil, // 隐藏菜单栏，使用自定义界面
 		BackgroundColour: &options.RGBA{R: 19, G: 20, B: 24, A: 255},
 		DisableResize:    false,
 		Frameless:        true,
