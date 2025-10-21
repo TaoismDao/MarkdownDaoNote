@@ -21,7 +21,13 @@ Unicode true
 !define UNINST_KEY      "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 
 Name "${PRODUCT_NAME}"
-Icon "${PROJECT_ROOT}\assets\icons\icon.ico"
+
+; 设置安装程序图标（如果文件存在）
+!if /FileExists "${PROJECT_ROOT}\assets\icons\icon.ico"
+  Icon "${PROJECT_ROOT}\assets\icons\icon.ico"
+!else
+  !warning "Icon file not found: ${PROJECT_ROOT}\assets\icons\icon.ico"
+!endif
 
 ; OutFile "C:\my-installer.exe"
 OutFile "${PROJECT_ROOT}\build\bin\${APP_NAME}-${APP_VERSION}-installer.exe"
@@ -34,7 +40,12 @@ ShowUninstDetails nevershow
 !include "LogicLib.nsh"
 
 !define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP "${PROJECT_ROOT}\assets\icons\header_image.bmp"
+; 设置标题图片（如果文件存在）
+!if /FileExists "${PROJECT_ROOT}\assets\icons\header_image.bmp"
+  !define MUI_HEADERIMAGE_BITMAP "${PROJECT_ROOT}\assets\icons\header_image.bmp"
+!else
+  !warning "Header image not found: ${PROJECT_ROOT}\assets\icons\header_image.bmp"
+!endif
 !define MUI_HEADERIMAGE_TITLE "安装 ${PRODUCT_NAME}"
 
 !define MUI_ABORTWARNING

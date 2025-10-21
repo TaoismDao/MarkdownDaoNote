@@ -269,12 +269,55 @@ jobs:
           choco install nsis -y
         shell: pwsh
 
+      - name: Verify installer assets
+        run: |
+          echo "Verifying required files for installer..."
+          if (Test-Path "assets\icons\icon.ico") {
+            echo "✅ icon.ico found"
+          } else {
+            echo "❌ icon.ico not found"
+            exit 1
+          }
+          if (Test-Path "assets\icons\header_image.bmp") {
+            echo "✅ header_image.bmp found"
+          } else {
+            echo "⚠️  header_image.bmp not found (optional)"
+          }
+          if (Test-Path "build\bin\MarkdownDaoNote.exe") {
+            echo "✅ MarkdownDaoNote.exe found"
+          } else {
+            echo "❌ MarkdownDaoNote.exe not found"
+            exit 1
+          }
+        shell: pwsh
+
       - name: Create NSIS installer
         run: |
           echo "Creating Windows installer..."
-          & "C:\Program Files (x86)\NSIS\makensis.exe" /V4 scripts\installer.nsi
-          echo "✅ Installer created"
-          ls build/bin/*.exe
+          $projectRoot = (Get-Location).Path
+          echo "Project root: $projectRoot"
+          
+          # 转换路径为 NSIS 格式（使用反斜杠）
+          $nsisProjectRoot = $projectRoot -replace '/', '\'
+          
+          # 构建 NSIS 命令
+          $nsisCmd = "C:\Program Files (x86)\NSIS\makensis.exe"
+          $nsisArgs = @(
+            "/V4"
+            "/DPROJECT_ROOT=$nsisProjectRoot"
+            "scripts\installer.nsi"
+          )
+          
+          echo "Running: $nsisCmd $($nsisArgs -join ' ')"
+          & $nsisCmd @nsisArgs
+          
+          if ($LASTEXITCODE -eq 0) {
+            echo "✅ Installer created successfully"
+            ls build\bin\*.exe
+          } else {
+            echo "❌ Installer creation failed with exit code: $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
         shell: pwsh
 
       - name: Upload Windows artifacts
