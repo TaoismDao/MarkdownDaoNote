@@ -10,6 +10,13 @@
 
 MarkdownDaoNote 聚焦于为开发者与知识工作者提供轻量却完整的 Markdown 写作体验。应用通过 Wails 将 Go 后端与基于 Vite 的前端整合成原生窗口程序，提供文件树浏览、多标签编辑、主题切换以及设置持久化等能力，适合在 macOS、Windows、Linux 上构建私有知识库或快速记录工作笔记。
 
+## 屏幕截图
+![screen1](assets/preview/screen1.png "screen1")
+![screen2](assets/preview/screen2.png "screen2")
+![screen-close-preview](assets/preview/screen-close-preview.png "screen-close-preview")
+![screen-full-preview](assets/preview/screen-full-preview.png "screen-full-preview")
+![screen-theme](assets/preview/screen-theme.png "screen-theme")
+
 ### 核心特性
 
 - **Editor.md 实时预览体验**：内置 Editor.md，默认启用分屏预览、代码高亮与目录侧栏，可根据主题偏好自定义编辑器、预览与工具栏主题。

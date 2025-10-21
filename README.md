@@ -10,6 +10,13 @@
 
 MarkdownDaoNote is designed to provide developers and knowledge workers with a lightweight yet complete Markdown writing experience. The application integrates Go backend with Vite-based frontend through Wails into a native window program, offering file tree browsing, multi-tab editing, theme switching, and settings persistence, suitable for building private knowledge bases or quick work notes on macOS, Windows, and Linux.
 
+## Screen Preview
+![screen1](assets/preview/screen1.png "screen1")
+![screen2](assets/preview/screen2.png "screen2")
+![screen-close-preview](assets/preview/screen-close-preview.png "screen-close-preview")
+![screen-full-preview](assets/preview/screen-full-preview.png "screen-full-preview")
+![screen-theme](assets/preview/screen-theme.png "screen-theme")
+
 ### Core Features
 
 - **Editor.md Real-time Preview Experience**: Built-in Editor.md with default split-screen preview, syntax highlighting, and table of contents sidebar, customizable editor, preview, and toolbar themes.
