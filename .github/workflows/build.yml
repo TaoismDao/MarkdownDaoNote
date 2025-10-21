@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**.md'
     tags:
       - 'v*'
   pull_request:
@@ -39,6 +43,11 @@ jobs:
       - name: Add Go bin to PATH
         run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
+      - name: Verify Wails installation
+        run: |
+          which wails
+          wails version
+
       - name: Install frontend dependencies
         run: |
           cd frontend
@@ -46,7 +55,11 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: npm run build
+        run: |
+          echo "Building frontend..."
+          npm run build
+          echo "Frontend build completed!"
+          ls -la dist/ || echo "Warning: dist directory not found"
 
       - name: Prepare macOS icon
         run: |
@@ -55,11 +68,24 @@ jobs:
 
       - name: Build application
         run: |
+          echo "Building macOS Universal App..."
           wails build -platform darwin/universal -v 2
         env:
           CGO_ENABLED: 1
 
-      - name: Create DMG (optional)
+      - name: Verify build output
+        run: |
+          echo "Build output:"
+          ls -lh build/bin/
+          if [ -d "build/bin/MarkdownDaoNote.app" ]; then
+            echo "✅ App bundle created successfully"
+            file build/bin/MarkdownDaoNote.app/Contents/MacOS/MarkdownDaoNote
+          else
+            echo "❌ App bundle not found"
+            exit 1
+          fi
+
+      - name: Create DMG installer
         run: |
           # 安装 create-dmg
           brew install create-dmg
@@ -80,8 +106,18 @@ jobs:
             --icon "MarkdownDaoNote.app" 175 120 \
             --hide-extension "MarkdownDaoNote.app" \
             --app-drop-link 425 120 \
-            "build/bin/MarkdownDaoNote.dmg" \
-            "build/bin/MarkdownDaoNote.app" || true
+            --no-internet-enable \
+            "build/bin/MarkdownDaoNote-macos-universal.dmg" \
+            "build/bin/MarkdownDaoNote.app" || {
+              echo "⚠️  DMG creation failed, but app is still available"
+            }
+
+      - name: Create ZIP archive
+        run: |
+          cd build/bin
+          zip -r MarkdownDaoNote-macos-universal.zip MarkdownDaoNote.app
+          cd ../..
+          echo "✅ ZIP archive created"
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -89,7 +125,8 @@ jobs:
           name: MarkdownDaoNote-macos
           path: |
             build/bin/MarkdownDaoNote.app
-            build/bin/MarkdownDaoNote.dmg
+            build/bin/MarkdownDaoNote-macos-universal.dmg
+            build/bin/MarkdownDaoNote-macos-universal.zip
           retention-days: 30
 
   build-linux:
@@ -229,14 +266,12 @@ jobs:
         run: |
           mkdir -p release
           
-          # macOS
-          if [ -f "artifacts/MarkdownDaoNote-macos/MarkdownDaoNote.dmg" ]; then
-            cp artifacts/MarkdownDaoNote-macos/MarkdownDaoNote.dmg release/MarkdownDaoNote-macos.dmg
+          # macOS - DMG 和 ZIP
+          if [ -f "artifacts/MarkdownDaoNote-macos/MarkdownDaoNote-macos-universal.dmg" ]; then
+            cp artifacts/MarkdownDaoNote-macos/MarkdownDaoNote-macos-universal.dmg release/
           fi
-          if [ -d "artifacts/MarkdownDaoNote-macos/MarkdownDaoNote.app" ]; then
-            cd artifacts/MarkdownDaoNote-macos
-            zip -r ../../release/MarkdownDaoNote-macos.zip MarkdownDaoNote.app
-            cd ../..
+          if [ -f "artifacts/MarkdownDaoNote-macos/MarkdownDaoNote-macos-universal.zip" ]; then
+            cp artifacts/MarkdownDaoNote-macos/MarkdownDaoNote-macos-universal.zip release/
           fi
           
           # Linux

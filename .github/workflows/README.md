@@ -2,37 +2,37 @@
 
 本目录包含了 MarkdownDaoNote 项目的 CI/CD workflow 配置文件。
 
-## 📋 Workflows 说明
+## 📋 Workflow 说明
 
-### 1. `build.yml` - 多平台构建和发布
+### `build.yml` - 多平台构建和发布
 
 **触发条件：**
-- 推送到 `main` 分支
+- 推送到 `main` 分支（**忽略 Markdown 和文档文件**）
 - 创建版本标签（如 `v1.0.1`）
 - Pull Request 到 `main` 分支
 - 手动触发
 
 **构建平台：**
 - ✅ macOS (Universal Binary - Intel + Apple Silicon)
-- ✅ Linux (x64 + DEB 包)
+  - `MarkdownDaoNote.app` - 原始 App Bundle
+  - `MarkdownDaoNote-macos-universal.dmg` - DMG 安装包
+  - `MarkdownDaoNote-macos-universal.zip` - ZIP 压缩包
+- ✅ Linux (x64)
+  - `MarkdownDaoNote` - 可执行文件
+  - `markdowndaonote_*.deb` - DEB 安装包
 - ✅ Windows (x64)
+  - `MarkdownDaoNote.exe` - 可执行文件
 
 **功能：**
 - 自动构建所有平台
+- 包含详细的验证和调试输出
 - 上传构建产物（保留 30 天）
 - 创建标签时自动发布 Release
 
-### 2. `build-macos-only.yml` - 仅构建 macOS
-
-**触发条件：**
-- 推送到 `main` 分支（忽略 Markdown 文件）
-- Pull Request 到 `main` 分支
-- 手动触发
-
-**构建输出：**
-- `MarkdownDaoNote.app` - 原始 App Bundle
-- `MarkdownDaoNote-macos-universal.dmg` - DMG 安装包
-- `MarkdownDaoNote-macos-universal.zip` - ZIP 压缩包
+**智能触发：**
+- ✅ 代码变更 → 触发构建
+- ✅ 打 tag → 触发构建 + 发布
+- ⏭️ 仅更新 Markdown 文档 → 跳过构建（节省 CI 资源）
 
 ## 🚀 使用方法
 
