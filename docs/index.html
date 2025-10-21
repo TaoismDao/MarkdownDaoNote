@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MarkdownDaoNote - 现代化的跨平台 Markdown 编辑器，支持实时预览、多主题、文件管理">
+    <meta name="keywords" content="Markdown, 编辑器, Wails, 跨平台, 实时预览">
+    <title>MarkdownDaoNote - 现代化 Markdown 编辑器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --bg-light: #f7fafc;
+            --bg-white: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--bg-light);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+            background-size: cover;
+            background-position: bottom;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--bg-white);
+            color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Section */
+        section {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 3rem;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .feature-desc {
+            color: var(--text-light);
+            line-height: 1.7;
+        }
+
+        /* Screenshots */
+        .screenshots {
+            background: var(--bg-white);
+        }
+
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .screenshot-item {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .screenshot-item:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .screenshot-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .screenshot-caption {
+            padding: 1rem;
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        /* Download Section */
+        .download-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            text-align: center;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .platform-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .platform-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .platform-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .platform-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .platform-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .platform-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .platform-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .download-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* Modal for screenshots */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>📝 MarkdownDaoNote</h1>
+            <p class="subtitle">现代化的跨平台 Markdown 编辑工作站</p>
+            <div class="download-buttons">
+                <a href="https://github.com/TaoismDao/MarkdownDaoNote/releases/latest" class="btn btn-primary">
+                    <span>⬇️</span> 立即下载
+                </a>
+                <a href="https://github.com/TaoismDao/MarkdownDaoNote" class="btn btn-secondary">
+                    <span>⭐</span> GitHub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <h2 class="section-title">✨ 核心特性</h2>
+            <p class="section-subtitle">强大功能，优雅体验</p>
+            
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">👁️</div>
+                    <h3 class="feature-title">实时预览</h3>
+                    <p class="feature-desc">边写边看，即时渲染 Markdown 内容，支持代码高亮、数学公式、流程图等扩展语法。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">多主题支持</h3>
+                    <p class="feature-desc">内置多款精美主题，编辑器和预览区域独立主题设置，打造个性化写作环境。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📂</div>
+                    <h3 class="feature-title">文件管理</h3>
+                    <p class="feature-desc">树形文件浏览器，快速切换文档，支持文件夹管理，提升写作效率。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3 class="feature-title">自动保存</h3>
+                    <p class="feature-desc">智能自动保存功能，永不丢失您的创作，专注写作无后顾之忧。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🖥️</div>
+                    <h3 class="feature-title">跨平台</h3>
+                    <p class="feature-desc">基于 Wails 构建，原生体验，支持 Windows、macOS 和 Linux 三大平台。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">性能优越</h3>
+                    <p class="feature-desc">Go + TypeScript 技术栈，启动迅速，内存占用低，流畅编辑大型文档。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="screenshots">
+        <div class="container">
+            <h2 class="section-title">📷 应用截图</h2>
+            <p class="section-subtitle">优雅界面，一目了然</p>
+            
+            <div class="screenshot-grid">
+                <div class="screenshot-item" onclick="openModal('../assets/preview/screen1.png')">
+                    <img src="../assets/preview/screen1.png" alt="主界面">
+                    <div class="screenshot-caption">主界面 - 实时预览</div>
+                </div>
+
+                <div class="screenshot-item" onclick="openModal('../assets/preview/screen2.png')">
+                    <img src="../assets/preview/screen2.png" alt="编辑界面">
+                    <div class="screenshot-caption">编辑界面</div>
+                </div>
+
+                <div class="screenshot-item" onclick="openModal('../assets/preview/screen-theme.png')">
+                    <img src="../assets/preview/screen-theme.png" alt="主题切换">
+                    <div class="screenshot-caption">多主题支持</div>
+                </div>
+
+                <div class="screenshot-item" onclick="openModal('../assets/preview/screen-full-preview.png')">
+                    <img src="../assets/preview/screen-full-preview.png" alt="全屏预览">
+                    <div class="screenshot-caption">全屏预览模式</div>
+                </div>
+
+                <div class="screenshot-item" onclick="openModal('../assets/preview/screen-close-preview.png')">
+                    <img src="../assets/preview/screen-close-preview.png" alt="纯编辑模式">
+                    <div class="screenshot-caption">专注编辑模式</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download-section">
+        <div class="container">
+            <h2 class="section-title">💿 下载安装</h2>
+            <p class="section-subtitle">选择您的平台，立即开始</p>
+            
+            <div class="platform-grid">
+                <div class="platform-card">
+                    <div class="platform-icon">🍎</div>
+                    <div class="platform-name">macOS</div>
+                    <p style="margin-bottom: 1rem;">支持 Intel 和 Apple Silicon</p>
+                    <div class="platform-links">
+                        <a href="https://github.com/TaoismDao/MarkdownDaoNote/releases/latest/download/MarkdownDaoNote-macos-universal.dmg">
+                            DMG 安装包
+                        </a>
+                        <a href="https://github.com/TaoismDao/MarkdownDaoNote/releases/latest/download/MarkdownDaoNote-macos-universal.zip">
+                            ZIP 压缩包
+                        </a>
+                    </div>
+                </div>
+
+                <div class="platform-card">
+                    <div class="platform-icon">🪟</div>
+                    <div class="platform-name">Windows</div>
+                    <p style="margin-bottom: 1rem;">Windows 10/11 64位</p>
+                    <div class="platform-links">
+                        <a href="https://github.com/TaoismDao/MarkdownDaoNote/releases/latest/download/MarkdownDaoNote-1.0.1-installer.exe">
+                            NSIS 安装程序
+                        </a>
+                        <a href="https://github.com/TaoismDao/MarkdownDaoNote/releases/latest/download/MarkdownDaoNote-windows.exe">
+                            绿色版（免安装）
+                        </a>
+                    </div>
+                </div>
+
+                <div class="platform-card">
+                    <div class="platform-icon">🐧</div>
+                    <div class="platform-name">Linux</div>
+                    <p style="margin-bottom: 1rem;">Debian/Ubuntu 系列</p>
+                    <div class="platform-links">
+                        <a href="https://github.com/TaoismDao/MarkdownDaoNote/releases/latest/download/markdowndaonote_1.0.1_amd64.deb">
+                            DEB 安装包
+                        </a>
+                        <a href="https://github.com/TaoismDao/MarkdownDaoNote/releases/latest/download/MarkdownDaoNote-linux">
+                            二进制文件
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>
+                由 <a href="https://github.com/TaoismDao" target="_blank">Taoism Dao</a> 用 ❤️ 构建
+            </p>
+            <p style="margin-top: 0.5rem; opacity: 0.8;">
+                基于 <a href="https://wails.io" target="_blank">Wails</a> 框架开发 | 
+                <a href="https://github.com/TaoismDao/MarkdownDaoNote/blob/main/LICENSE" target="_blank">MIT License</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Screenshot Modal -->
+    <div class="modal" id="screenshot-modal" onclick="closeModal()">
+        <span class="close-modal">&times;</span>
+        <div class="modal-content">
+            <img id="modal-img" src="" alt="Screenshot">
+        </div>
+    </div>
+
+    <script>
+        function openModal(src) {
+            const modal = document.getElementById('screenshot-modal');
+            const modalImg = document.getElementById('modal-img');
+            modal.classList.add('active');
+            modalImg.src = src;
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('screenshot-modal');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
