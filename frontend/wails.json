@@ -1,0 +1,20 @@
+{
+    "$schema": "https://wails.io/schemas/config.v2.json",
+    "name": "MarkdownDaoNote",
+    "outputfilename": "MarkdownDaoNote",
+    "assetdir": "frontend/dist",
+    "frontend:dir": "frontend",
+    "frontend:install": "npm install",
+    "frontend:build": "npm run build",
+    "wailsjsdir": "frontend/src/wailsjs",
+    "author": {
+        "name": "Taoism Dao",
+        "email": "TaoismDao@outlook.com"
+    },
+    "info": {
+        "companyName": "Taoism Dao",
+        "productName": "MarkdownDaoNote",
+        "productVersion": "1.0.1",
+        "copyright": "Copyright © Taoism Dao 2025"
+    }
+}

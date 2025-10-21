@@ -5,7 +5,7 @@ import {
     Quit,
     WindowMinimise,
     WindowToggleMaximise,
-} from "@/wailsjs/wailsjs/runtime/runtime";
+} from "@/wailsjs/runtime/runtime";
 import {
     DEFAULT_SETTINGS,
     openFileDialog,
