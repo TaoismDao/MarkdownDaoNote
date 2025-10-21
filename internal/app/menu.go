@@ -25,9 +25,9 @@ const (
 
 var (
 	aboutTitle   = "About MarkdownDaoNote"
-	aboutVersion = "0.1.0"
+	aboutVersion = "1.0.1"
 	aboutAuthor  = "Taoism Dao"
-	aboutGitHub  = "https://github.com/yourname/MarkdownDaoNote"
+	aboutGitHub  = "https://github.com/TaoismDao/MarkdownDaoNote"
 )
 
 var editorThemeOptions = []string{

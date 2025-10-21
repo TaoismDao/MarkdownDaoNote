@@ -30,6 +30,12 @@ import type {
     Settings as AppSettings,
 } from "@/services/api";
 
+const APP_NAME = "MarkdownDaoNote";
+const APP_VERSION = "1.0.1";
+const APP_AUTHOR = "Taoism Dao";
+const APP_GITHUB = "https://github.com/TaoismDao/MarkdownDaoNote";
+const APP_ICON = "/favicon.ico";
+
 const EVENT_OPEN_FILE = "open-file";
 const EVENT_FILE_OPENED = "file:opened";
 const EVENT_FILE_SAVE_REQUESTED = "file:save-requested";
@@ -160,7 +166,7 @@ export class EditorApp {
      */
     private async showMessageDialog(
         message: string,
-        title: string = "MarkdownDaoNote",
+        title: string = APP_NAME,
         type: "info" | "warning" | "error" = "info",
     ): Promise<void> {
         const dialogTitle = `${title} - ${this.getDialogTypeText(type)}`;
@@ -455,7 +461,7 @@ export class EditorApp {
         const originalAlert = window.alert;
         window.alert = (message: string) => {
             // 使用统一的showMessageDialog替代原生alert
-            this.showMessageDialog(message, "MarkdownDaoNote", "info");
+            this.showMessageDialog(message, APP_NAME, "info");
         };
     }
 
@@ -487,7 +493,7 @@ export class EditorApp {
 
         const title = document.createElement("div");
         title.className = "font-semibold tracking-wide";
-        title.textContent = "MarkdownDaoNote";
+        title.textContent = APP_NAME;
 
         const tagline = document.createElement("div");
         tagline.className = "text-xs text-white/60";
@@ -1887,9 +1893,151 @@ export class EditorApp {
     }
 
     private handleShowAbout() {
-        showAboutDialog().catch((error) =>
-            console.warn("Show about failed", error),
-        );
+        this.showAboutDialog();
+    }
+
+    /**
+     * 显示关于对话框，包含GitHub超链接
+     */
+    private showAboutDialog(): void {
+        // 移除现有的模态框
+        this.removeExistingModal();
+
+        // 创建遮罩层
+        const overlay = document.createElement("div");
+        overlay.className =
+            "fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center";
+        overlay.id = "modal-overlay";
+        overlay.style.zIndex = "99999";
+
+        // 创建模态框容器
+        const modal = document.createElement("div");
+        modal.className =
+            "bg-gray-800 border border-gray-600 rounded-lg shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100";
+        modal.style.minWidth = "320px";
+        modal.style.maxWidth = "500px";
+        modal.style.borderLeftColor = "#3b82f6";
+        modal.style.borderLeftWidth = "4px";
+
+        // 创建标题栏
+        const header = document.createElement("div");
+        header.className =
+            "flex items-center gap-3 px-6 py-4 border-b border-gray-700";
+
+        const icon = document.createElement("img");
+        icon.src = APP_ICON;
+        icon.alt = "App Icon";
+        icon.className = "w-8 h-8";
+
+        const titleElement = document.createElement("h3");
+        titleElement.textContent = `About ${APP_NAME}`;
+        titleElement.className = "text-lg font-semibold text-white flex-1";
+
+        const closeButton = document.createElement("button");
+        closeButton.innerHTML = "×";
+        closeButton.className =
+            "text-gray-400 hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded hover:bg-gray-700 transition-colors";
+        closeButton.addEventListener("click", () => this.removeExistingModal());
+
+        header.appendChild(icon);
+        header.appendChild(titleElement);
+        header.appendChild(closeButton);
+
+        // 创建内容区域
+        const content = document.createElement("div");
+        content.className = "px-6 py-4";
+
+        // 应用信息
+        const appInfo = document.createElement("div");
+        appInfo.className = "text-gray-200 leading-relaxed space-y-2";
+        
+        const appName = document.createElement("div");
+        appName.textContent = APP_NAME;
+        appName.className = "text-xl font-semibold text-white mb-3";
+        
+        const version = document.createElement("div");
+        version.textContent = `Version: ${APP_VERSION}`;
+        version.className = "text-sm text-gray-300";
+        
+        const author = document.createElement("div");
+        author.textContent = `Author: ${APP_AUTHOR}`;
+        author.className = "text-sm text-gray-300";
+        
+        // GitHub 链接
+        const githubContainer = document.createElement("div");
+        githubContainer.className = "mt-4";
+        
+        const githubLabel = document.createElement("div");
+        githubLabel.textContent = "GitHub: ";
+        githubLabel.className = "text-sm text-gray-300 inline";
+        
+        const githubLink = document.createElement("a");
+        githubLink.textContent = APP_GITHUB;
+        githubLink.href = APP_GITHUB;
+        githubLink.target = "_blank";
+        githubLink.className = "text-blue-400 hover:text-blue-300 underline text-sm transition-colors";
+        githubLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            // 使用 Wails 的 BrowserOpenURL 方法打开链接
+            if (window.go && window.go.main && window.go.main.App) {
+                window.go.main.App.BrowserOpenURL(APP_GITHUB);
+            } else {
+                // 备用方案：使用 window.open
+                window.open(APP_GITHUB, "_blank");
+            }
+        });
+        
+        githubContainer.appendChild(githubLabel);
+        githubContainer.appendChild(githubLink);
+        
+        appInfo.appendChild(appName);
+        appInfo.appendChild(version);
+        appInfo.appendChild(author);
+        appInfo.appendChild(githubContainer);
+        
+        content.appendChild(appInfo);
+
+        // 创建按钮区域
+        const footer = document.createElement("div");
+        footer.className =
+            "flex justify-end gap-3 px-6 py-4 border-t border-gray-700";
+
+        const okButton = document.createElement("button");
+        okButton.textContent = "OK";
+        okButton.className = "px-4 py-2 rounded font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white";
+        okButton.addEventListener("click", () => this.removeExistingModal());
+
+        footer.appendChild(okButton);
+
+        // 组装模态框
+        modal.appendChild(header);
+        modal.appendChild(content);
+        modal.appendChild(footer);
+        overlay.appendChild(modal);
+
+        // 添加到页面
+        document.body.appendChild(overlay);
+
+        // 添加动画效果
+        setTimeout(() => {
+            modal.style.transform = "scale(1)";
+        }, 10);
+
+        // 点击遮罩层关闭
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) {
+                this.removeExistingModal();
+            }
+        });
+
+        // ESC键关闭
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                this.removeExistingModal();
+                document.removeEventListener("keydown", handleKeyDown);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
     }
 
     private renderSidebar() {
@@ -1921,12 +2069,12 @@ export class EditorApp {
             // 创建应用名称
             const appName = document.createElement("div");
             appName.className = "text-lg font-semibold text-white mb-1";
-            appName.textContent = "MarkdownDaoNote";
+            appName.textContent = APP_NAME;
             
             // 创建版本信息
             const version = document.createElement("div");
             version.className = "text-xs text-white/60 mb-4";
-            version.textContent = "v1.0.0";
+            version.textContent = `Version: ${APP_VERSION}`;
             
             logoSection.appendChild(logoIcon);
             logoSection.appendChild(appName);

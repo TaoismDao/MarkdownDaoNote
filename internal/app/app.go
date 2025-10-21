@@ -158,6 +158,16 @@ func (a *App) ShowAbout() {
 	a.showAbout()
 }
 
+// BrowserOpenURL opens a URL in the default browser.
+func (a *App) BrowserOpenURL(url string) error {
+	if a.ctx == nil {
+		return errors.New("context is not available")
+	}
+
+	runtime.BrowserOpenURL(a.ctx, url)
+	return nil
+}
+
 // SaveSettings persists editor settings.
 func (a *App) SaveSettings(settings services.Settings) error {
 	return a.settings.Save(settings)
