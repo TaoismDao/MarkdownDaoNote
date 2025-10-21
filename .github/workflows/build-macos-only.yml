@@ -49,12 +49,13 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Verify frontend dependencies
+      - name: Build frontend
         working-directory: frontend
         run: |
-          echo "Node version: $(node --version)"
-          echo "NPM version: $(npm --version)"
-          ls -la node_modules/ | head -20
+          echo "Building frontend..."
+          npm run build
+          echo "Frontend build completed!"
+          ls -la dist/ || echo "Warning: dist directory not found"
 
       - name: Build Universal macOS App
         run: |

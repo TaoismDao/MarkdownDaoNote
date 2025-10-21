@@ -44,6 +44,10 @@ jobs:
           cd frontend
           npm ci
 
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
       - name: Build application
         run: |
           wails build -platform darwin/universal -v 2
@@ -121,6 +125,10 @@ jobs:
           cd frontend
           npm ci
 
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
       - name: Build application
         run: wails build -v 2
 
@@ -175,6 +183,10 @@ jobs:
         run: |
           cd frontend
           npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
 
       - name: Build application
         run: wails build -v 2

@@ -6,17 +6,29 @@ GitHub Actions 构建失败，错误信息：
 ```
 Build macOS Universal App
 Process completed with exit code 1.
-Build macOS Universal App
-pattern frontend/dist/*: no matching files found
+Error: assets_embed.go:9:12: pattern frontend/dist/*: no matching files found
 ```
 
 ## 根本原因
 
-`wails` 命令未在系统 PATH 中，导致构建命令无法执行。
+两个问题：
+1. ~~`wails` 命令未在系统 PATH 中~~ ✅ 已修复
+2. **前端代码没有被构建**，导致 `frontend/dist/` 目录不存在
 
 ## 修复内容
 
-### 1. 添加 PATH 配置
+### 1. 添加前端构建步骤（关键修复）⭐
+
+在所有平台的构建流程中添加：
+```yaml
+- name: Build frontend
+  working-directory: frontend
+  run: npm run build
+```
+
+**说明**：必须在运行 `wails build` 之前构建前端，生成 `frontend/dist/` 目录。
+
+### 2. 添加 PATH 配置
 
 **macOS 和 Linux:**
 ```yaml
@@ -29,15 +41,6 @@ pattern frontend/dist/*: no matching files found
 - name: Add Go bin to PATH
   run: echo "$(go env GOPATH)/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
   shell: pwsh
-```
-
-### 2. 添加验证步骤（仅 macOS）
-
-```yaml
-- name: Verify Wails installation
-  run: |
-    which wails
-    wails version
 ```
 
 ### 3. 启用详细日志

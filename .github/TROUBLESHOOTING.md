@@ -2,26 +2,50 @@
 
 ## ❌ 常见错误及解决方案
 
-### 1. "pattern frontend/dist/*: no matching files found"
+### 1. "pattern frontend/dist/*: no matching files found" ⭐ 最常见
+
+**完整错误信息**：
+```
+Error: assets_embed.go:9:12: pattern frontend/dist/*: no matching files found
+```
 
 **错误原因**：
-- Wails CLI 未在 PATH 中
-- `wails` 命令无法找到，导致构建失败
-- 前端代码没有被构建
+- **主要原因**：前端代码没有被构建，`frontend/dist/` 目录不存在
+- 次要原因：Wails CLI 未在 PATH 中
 
 **解决方案**：
-已在所有 workflow 中添加以下步骤：
+在运行 `wails build` 之前必须先构建前端：
 
 ```yaml
-- name: Add Go bin to PATH
-  run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+- name: Install frontend dependencies
+  working-directory: frontend
+  run: npm ci
+
+- name: Build frontend  # 👈 关键步骤
+  working-directory: frontend
+  run: npm run build
+
+- name: Build application
+  run: wails build
 ```
 
-**验证修复**：
-查看构建日志，确保能看到：
+**为什么需要这个**：
+Wails 使用 `//go:embed` 指令将前端文件嵌入到 Go 二进制文件中：
+```go
+//go:embed frontend/dist/*
+var assets embed.FS
 ```
-which wails
-/Users/runner/go/bin/wails
+
+如果 `frontend/dist/` 不存在，Go 编译器会报错。
+
+**验证修复**：
+查看构建日志，应该能看到：
+```
+Building frontend...
+Frontend build completed!
+total 24
+drwxr-xr-x  assets
+-rw-r--r--  index.html
 ```
 
 ### 2. "Process completed with exit code 1"
@@ -241,17 +265,32 @@ wails build -platform windows/amd64 -v 2
 ## 🔄 最新修复（2024-10-21）
 
 ### 修复的问题
+✅ **关键修复**：添加了前端构建步骤（`npm run build`）
 ✅ 修复了 "pattern frontend/dist/*: no matching files found" 错误
 ✅ 为所有平台添加了 Go bin PATH 配置
 ✅ 添加了详细的构建日志（-v 2）
-✅ 添加了 Wails 安装验证步骤
+✅ 添加了 Wails 安装验证步骤（macOS）
 
 ### 更新的文件
-- `.github/workflows/build.yml`
-- `.github/workflows/build-macos-only.yml`
+- `.github/workflows/build.yml` - 所有平台（macOS, Linux, Windows）
+- `.github/workflows/build-macos-only.yml` - 仅 macOS
+- `.github/TROUBLESHOOTING.md` - 故障排除文档
+- `.github/FIX_SUMMARY.md` - 修复摘要
 
 ### 测试验证
 推送代码后，构建应该能成功完成。查看 Actions 页面确认所有步骤都是绿色 ✓。
+
+### 构建流程顺序
+```
+1. Checkout 代码
+2. 安装 Go 和 Node.js
+3. 安装 Wails CLI
+4. 添加 Go bin 到 PATH
+5. 安装前端依赖 (npm ci)
+6. 🔑 构建前端 (npm run build)  ← 新增的关键步骤
+7. 构建应用程序 (wails build)
+8. 上传构建产物
+```
 
 ## 📞 获取帮助
 
