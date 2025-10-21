@@ -40,7 +40,7 @@ https://taoismdao.github.io/MarkdownDaoNote/
 - 切换语言后，所有文本内容会立即更新
 - 用户的语言偏好会保存到浏览器 localStorage
 - 下次访问时自动加载上次选择的语言
-- 默认语言为中文
+- 默认语言为英文
 
 ### 如何添加新的翻译
 
