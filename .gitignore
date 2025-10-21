@@ -1,0 +1,21 @@
+# Build outputs
+build/
+frontend/dist/
+README.zh_cn.bak.md
+README.bak.md
+
+# Node
+frontend/node_modules/
+
+# Wails generated bindings
+frontend/src/wailsjs/
+
+# Editor
+.DS_Store
+Thumbs.db
+
+# Temp
+.tmp/
+
+# Go
+bin/
