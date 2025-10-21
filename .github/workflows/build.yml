@@ -160,6 +160,13 @@ jobs:
             build-essential \
             imagemagick
 
+      - name: Create webkit2gtk symlink
+        run: |
+          # Ubuntu 24.04 使用 webkit2gtk-4.1，但 Wails 期望 webkit2gtk-4.0
+          sudo ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc \
+                      /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
+          echo "✅ Created webkit2gtk-4.0 symlink"
+
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 

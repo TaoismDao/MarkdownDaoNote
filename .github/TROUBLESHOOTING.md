@@ -2,7 +2,48 @@
 
 ## ❌ 常见错误及解决方案
 
-### 1. "pattern frontend/dist/*: no matching files found" ⭐ 最常见
+### 1. "Package webkit2gtk-4.0 was not found" (Linux) ⭐ Ubuntu 24.04+
+
+**完整错误信息**：
+```
+Package webkit2gtk-4.0 was not found in the pkg-config search path.
+Package 'webkit2gtk-4.0', required by 'virtual:world', not found
+```
+
+**错误原因**：
+- Ubuntu 24.04+ 使用 `webkit2gtk-4.1`，而 Wails 期望 `webkit2gtk-4.0`
+- GitHub Actions 的 `ubuntu-latest` 现在是 Ubuntu 24.04
+
+**解决方案**：
+在安装依赖后创建符号链接：
+
+```yaml
+- name: Install system dependencies
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y \
+      libgtk-3-dev \
+      libwebkit2gtk-4.1-dev \
+      pkg-config \
+      build-essential
+
+- name: Create webkit2gtk symlink
+  run: |
+    sudo ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc \
+                /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
+```
+
+**验证修复**：
+```bash
+pkg-config --modversion webkit2gtk-4.0
+# 应该输出版本号，例如: 2.46.5
+```
+
+**详细说明**：参见 [LINUX_BUILD_FIX.md](LINUX_BUILD_FIX.md)
+
+---
+
+### 2. "pattern frontend/dist/*: no matching files found" ⭐ 最常见
 
 **完整错误信息**：
 ```
@@ -48,7 +89,7 @@ drwxr-xr-x  assets
 -rw-r--r--  index.html
 ```
 
-### 2. "Process completed with exit code 1"
+### 3. "Process completed with exit code 1"
 
 **可能原因**：
 1. Wails 命令未找到（见问题 1）
@@ -81,7 +122,7 @@ drwxr-xr-x  assets
      run: wails build -v 2  # -v 2 启用详细日志
    ```
 
-### 3. macOS DMG 创建失败
+### 4. macOS DMG 创建失败
 
 **错误信息**：
 ```
@@ -102,36 +143,6 @@ DMG 创建步骤已设置为可选，不会导致整个构建失败：
 
 **替代方案**：
 即使 DMG 创建失败，ZIP 包仍然可用。
-
-### 4. Linux 构建失败 - webkit2gtk-4.0 未找到
-
-**错误信息**：
-```
-Package webkit2gtk-4.0 was not found
-```
-
-**解决方案**：
-workflow 已配置安装 `libwebkit2gtk-4.1-dev`：
-
-```yaml
-- name: Install system dependencies
-  run: |
-    sudo apt-get update
-    sudo apt-get install -y \
-      libgtk-3-dev \
-      libwebkit2gtk-4.1-dev \
-      pkg-config \
-      build-essential
-```
-
-如果仍然失败，添加符号链接步骤：
-
-```yaml
-- name: Create webkit2gtk symlink
-  run: |
-    sudo ln -s /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.1.pc \
-               /usr/lib/x86_64-linux-gnu/pkgconfig/webkit2gtk-4.0.pc
-```
 
 ### 5. Windows 构建失败
 
