@@ -10,9 +10,32 @@ GitHub Release 中缺少 Linux 构建产物：
 
 ## 🔍 问题原因
 
-在 `.github/workflows/build.yml` 的 "Prepare release assets" 步骤中：
+在 `.github/workflows/build.yml` 的 "Prepare release assets" 步骤中有两个问题：
 
-**问题代码**（第 368 行）:
+### 问题 1: 路径错误
+
+**artifacts 实际结构**（由上传时保留目录）:
+```
+artifacts/MarkdownDaoNote-linux/
+├── bin/
+│   └── MarkdownDaoNote          ← 实际位置
+└── packages/
+    └── markdowndaonote_*.deb    ← 实际位置
+```
+
+**错误的查找路径**:
+```bash
+if [ -f "artifacts/MarkdownDaoNote-linux/MarkdownDaoNote" ]; then  # ❌ 找不到
+```
+
+**正确的路径**:
+```bash
+if [ -f "artifacts/MarkdownDaoNote-linux/bin/MarkdownDaoNote" ]; then  # ✅
+```
+
+### 问题 2: 通配符不工作
+
+**问题代码**:
 ```bash
 if [ -f "artifacts/MarkdownDaoNote-linux/"*.deb ]; then
   cp artifacts/MarkdownDaoNote-linux/*.deb release/
@@ -26,16 +49,16 @@ fi
 
 ## ✅ 解决方案
 
-### 1. 使用 `find` 命令处理通配符
+### 1. 修正路径并使用 `find` 命令
 
 **修复后的代码**:
 ```bash
 # Linux - 二进制和 DEB 包
 echo "🐧 Processing Linux artifacts..."
 
-# 复制二进制文件
-if [ -f "artifacts/MarkdownDaoNote-linux/MarkdownDaoNote" ]; then
-  cp artifacts/MarkdownDaoNote-linux/MarkdownDaoNote release/MarkdownDaoNote-linux
+# 复制二进制文件（修正路径到 bin/ 子目录）
+if [ -f "artifacts/MarkdownDaoNote-linux/bin/MarkdownDaoNote" ]; then
+  cp artifacts/MarkdownDaoNote-linux/bin/MarkdownDaoNote release/MarkdownDaoNote-linux
   chmod +x release/MarkdownDaoNote-linux
   echo "✅ Copied Linux binary"
 else
@@ -83,7 +106,43 @@ ls -lh release/
 
 **步骤**: `release` job → `Prepare release assets`
 
-**行数**: 约 363-417 行
+**行数**: 约 375-396 行
+
+## 💡 为什么有子目录？
+
+在 `build-linux` job 的上传步骤中：
+
+```yaml
+- name: Upload Linux artifacts
+  uses: actions/upload-artifact@v4
+  with:
+    name: MarkdownDaoNote-linux
+    path: |
+      build/bin/MarkdownDaoNote          # 保留 bin/ 目录
+      build/packages/*.deb                # 保留 packages/ 目录
+```
+
+`actions/upload-artifact@v4` 默认会**保留源路径的目录结构**，所以：
+- `build/bin/MarkdownDaoNote` → `artifacts/MarkdownDaoNote-linux/bin/MarkdownDaoNote`
+- `build/packages/*.deb` → `artifacts/MarkdownDaoNote-linux/packages/*.deb`
+
+### 解决方案选择
+
+#### 选项 A: 修改下载路径（当前方案）✅
+```bash
+cp artifacts/MarkdownDaoNote-linux/bin/MarkdownDaoNote release/
+```
+- 优点：简单直接
+- 缺点：需要知道目录结构
+
+#### 选项 B: 修改上传路径
+```yaml
+path: |
+  build/bin/*          # 使用通配符，不保留目录
+  build/packages/*
+```
+- 优点：扁平化结构
+- 缺点：可能导致文件名冲突
 
 ## 🎯 修复效果
 

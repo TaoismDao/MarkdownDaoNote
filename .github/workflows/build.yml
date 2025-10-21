@@ -23,6 +23,7 @@ jobs:
   build-macos:
     name: Build macOS
     runs-on: macos-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     
     steps:
       - name: Checkout code
@@ -136,6 +137,7 @@ jobs:
   build-linux:
     name: Build Linux
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     
     steps:
       - name: Checkout code
@@ -214,6 +216,7 @@ jobs:
   build-windows:
     name: Build Windows
     runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
     
     steps:
       - name: Checkout code
@@ -375,15 +378,16 @@ jobs:
           # Linux - 二进制和 DEB 包
           echo ""
           echo "🐧 Processing Linux artifacts..."
-          if [ -f "artifacts/MarkdownDaoNote-linux/MarkdownDaoNote" ]; then
-            cp artifacts/MarkdownDaoNote-linux/MarkdownDaoNote release/MarkdownDaoNote-linux
+          # Linux 二进制在 bin/ 子目录中
+          if [ -f "artifacts/MarkdownDaoNote-linux/bin/MarkdownDaoNote" ]; then
+            cp artifacts/MarkdownDaoNote-linux/bin/MarkdownDaoNote release/MarkdownDaoNote-linux
             chmod +x release/MarkdownDaoNote-linux
             echo "✅ Copied Linux binary"
           else
-            echo "⚠️  Linux binary not found"
+            echo "⚠️  Linux binary not found at artifacts/MarkdownDaoNote-linux/bin/MarkdownDaoNote"
           fi
           
-          # 使用 find 查找 DEB 包
+          # 使用 find 查找 DEB 包（在 packages/ 子目录中）
           if [ -d "artifacts/MarkdownDaoNote-linux" ]; then
             deb_count=$(find artifacts/MarkdownDaoNote-linux -name "*.deb" | wc -l)
             if [ "$deb_count" -gt 0 ]; then
