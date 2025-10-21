@@ -1,5 +1,8 @@
 # MarkdownDaoNote
 
+[README English](README.md)
+[README 中文](README.zh_cn.md)
+
 > 跨平台 Markdown 桌面客户端，基于 Go 1.22 + Wails 2 与 Editor.md 组合打造，主打本地文件工作流、实时预览与多标签笔记体验。
 
 [TOC]
