@@ -2,7 +2,60 @@
 
 ## ❌ 常见错误及解决方案
 
-### 1. "Package webkit2gtk-4.0 was not found" (Linux) ⭐ Ubuntu 24.04+
+### 1. "GitHub release failed with status: 403" ⭐ 权限问题
+
+**完整错误信息**：
+```
+⚠️ GitHub release failed with status: 403
+undefined
+❌ Too many retries. Aborting...
+Error: Too many retries.
+```
+
+**错误原因**：
+- GitHub Actions 的 `GITHUB_TOKEN` 缺少创建 Release 的权限
+- 从 2023 年起，GitHub Actions 默认只有读权限
+
+**解决方案**：
+在 workflow 文件顶部添加权限配置：
+
+```yaml
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# 权限配置：允许创建 Release
+permissions:
+  contents: write
+
+jobs:
+  # ...
+```
+
+**位置**: 在 `on:` 之后，`jobs:` 之前
+
+**验证修复**：
+```bash
+# 推送修改
+git add .github/workflows/build.yml
+git commit -m "fix: 添加 GitHub Release 创建权限"
+git push
+
+# 删除并重新创建 tag
+git push --delete origin v1.0.1
+git tag -d v1.0.1
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+**详细说明**：参见 [RELEASE_PERMISSION_FIX.md](RELEASE_PERMISSION_FIX.md)
+
+---
+
+### 2. "Package webkit2gtk-4.0 was not found" (Linux) ⭐ Ubuntu 24.04+
 
 **完整错误信息**：
 ```
@@ -43,7 +96,7 @@ pkg-config --modversion webkit2gtk-4.0
 
 ---
 
-### 2. "pattern frontend/dist/*: no matching files found" ⭐ 最常见
+### 3. "pattern frontend/dist/*: no matching files found" ⭐ 最常见
 
 **完整错误信息**：
 ```
@@ -89,7 +142,7 @@ drwxr-xr-x  assets
 -rw-r--r--  index.html
 ```
 
-### 3. "Process completed with exit code 1"
+### 4. "Process completed with exit code 1"
 
 **可能原因**：
 1. Wails 命令未找到（见问题 1）
@@ -122,7 +175,7 @@ drwxr-xr-x  assets
      run: wails build -v 2  # -v 2 启用详细日志
    ```
 
-### 4. macOS DMG 创建失败
+### 5. macOS DMG 创建失败
 
 **错误信息**：
 ```
@@ -144,7 +197,7 @@ DMG 创建步骤已设置为可选，不会导致整个构建失败：
 **替代方案**：
 即使 DMG 创建失败，ZIP 包仍然可用。
 
-### 5. Windows 构建失败
+### 6. Windows 构建失败
 
 **常见问题**：
 - PATH 设置语法不同
@@ -158,7 +211,7 @@ Windows 使用 PowerShell 语法：
   shell: pwsh
 ```
 
-### 6. 前端依赖缓存问题
+### 7. 前端依赖缓存问题
 
 **错误信息**：
 ```
@@ -179,7 +232,7 @@ npm ERR! code EINTEGRITY
 2. 删除所有缓存
 3. 重新运行 workflow
 
-### 7. 构建超时
+### 8. 构建超时
 
 **错误信息**：
 ```
@@ -192,7 +245,7 @@ The job running on runner ... has exceeded the maximum execution time of 360 min
 2. **优化缓存**：确保 Go 和 npm 缓存启用
 3. **减少构建步骤**：移除不必要的验证步骤
 
-### 8. 上传 Artifacts 失败
+### 9. 上传 Artifacts 失败
 
 **错误信息**：
 ```
