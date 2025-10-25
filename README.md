@@ -5,9 +5,6 @@
 [![Go Version](https://img.shields.io/badge/Go-1.22-blue.svg)](https://golang.org/)
 [![Wails](https://img.shields.io/badge/Wails-v2.10-red.svg)](https://wails.io/)
 
-[[English]](README.md)  
-[[中文]](README.zh_cn.md)
-
 > Cross-platform Markdown desktop client built with Go 1.22 + Wails 2 and Editor.md, focusing on local file workflows, real-time preview, and multi-tab note-taking experience.
 
 [TOC]
